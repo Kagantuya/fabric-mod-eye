@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "eye",
+  "version": "${version}",
+  "name": "Eye",
+  "description": "Watch your back!",
+  "authors": [
+    "Kagantuya"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/eye/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "com.fudansteam.eye.client.EyeClient"
+    ],
+    "main": [
+      "com.fudansteam.eye.Eye"
+    ]
+  },
+  "mixins": [
+    "eye.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.11.2",
+    "fabric": "*",
+    "minecraft": "1.16.5"
+  }
+}
