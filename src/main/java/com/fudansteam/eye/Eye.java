@@ -1,7 +1,6 @@
 package com.fudansteam.eye;
 
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.world.World;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,7 +12,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Eye implements ModInitializer {
     
-    public static World world = null;
     public static ConcurrentHashMap<String, String> tips = new ConcurrentHashMap<>(4);
     public static ConcurrentHashMap<String, Long> tipTimes = new ConcurrentHashMap<>(tips.size());
     
