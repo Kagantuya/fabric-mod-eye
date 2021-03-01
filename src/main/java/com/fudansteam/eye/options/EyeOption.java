@@ -12,9 +12,9 @@ import net.minecraft.text.TranslatableText;
  */
 public class EyeOption {
     
-    public static final DoubleOption EYE_DISTANCE = new DoubleOption("eye.config.options.distance", 1.0D, 50.0D, 1.0F,
+    public static final DoubleOption EYE_DISTANCE = new DoubleOption("eye.options.distance", 1.0D, 50.0D, 1.0F,
             gameOptions -> (double) EyeConfig.distance,
             (gameOptions, distance) -> EyeConfig.distance = distance.intValue(),
-            (gameOptions, option) -> new TranslatableText("Eye Distance:%s", EyeConfig.distance));
+            (gameOptions, option) -> new TranslatableText("eye.options.distance", EyeConfig.distance));
     
 }
