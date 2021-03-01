@@ -18,5 +18,4 @@
 预览截图：
 ![Alt text](https://gitee.com/a_box/other/raw/master/screenshot.png "预览截图")
 
-演示视频：
-暂无制作
+[演示视频](https://www.bilibili.com/video/BV1Wf4y167yS/)
