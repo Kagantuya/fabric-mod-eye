@@ -1,4 +1,11 @@
 {
-  "eye.menu": "设置眼",
-  "eye.options.distance": "检测距离:%s"
+  "eye.menu": "眼…",
+  "eye.title": "眼",
+
+  "eye.options.distance": "检测距离",
+  "eye.options.distance_s": "检测距离:%s",
+
+  "eye.options.super_eye": "超级眼",
+  "eye.options.super_eye.open": "超级眼:开启",
+  "eye.options.super_eye.off": "超级眼:关闭"
 }

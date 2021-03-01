@@ -7,7 +7,7 @@ import net.minecraft.client.gui.widget.ButtonListWidget;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.options.Option;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 
 /**
  * @author : 箱子
@@ -20,8 +20,8 @@ public class EyeScreen extends Screen {
     private final Screen parent;
     private ButtonListWidget list;
     
-    public EyeScreen(Screen parent, Text title) {
-        super(title);
+    public EyeScreen(Screen parent) {
+        super(new TranslatableText("eye.title"));
         this.parent = parent;
     }
     
@@ -36,7 +36,7 @@ public class EyeScreen extends Screen {
     @Override
     protected void init() {
         this.list = new ButtonListWidget(this.client, this.width, this.height, 32, this.height - 32, 25);
-        this.list.addAll(new Option[]{EyeOption.EYE_DISTANCE});
+        this.list.addAll(new Option[]{EyeOption.EYE_DISTANCE, EyeOption.SUPER_EYE});
         this.children.add(this.list);
         this.addButton(new ButtonWidget(this.width / 2 - 100, this.height - 27, 200, 20, ScreenTexts.DONE, (button) -> {
             if (this.client != null) {

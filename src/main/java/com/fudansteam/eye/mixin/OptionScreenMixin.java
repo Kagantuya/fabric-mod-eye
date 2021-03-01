@@ -26,12 +26,13 @@ public class OptionScreenMixin extends Screen {
     
     @Inject(method = "init", at = @At("RETURN"))
     private void init(CallbackInfo ci) {
-        TranslatableText title = new TranslatableText("eye.menu");
-        this.addButton(new ButtonWidget(this.width / 2 - 155, this.height / 6 + 144 - 6, 150, 20, title, (button) -> {
-            if (this.client != null) {
-                this.client.openScreen(new EyeScreen(this, title));
-            }
-        }));
+        this.addButton(new ButtonWidget(this.width / 2 - 155, this.height / 6 + 144 - 6, 150, 20,
+                new TranslatableText("eye.menu"),
+                (button) -> {
+                    if (this.client != null) {
+                        this.client.openScreen(new EyeScreen(this));
+                    }
+                }));
     }
     
 }

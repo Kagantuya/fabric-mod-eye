@@ -35,9 +35,10 @@ public class WorldMixin {
         
         // 玩家不为空且实体不为当前玩家，同时二者距离在指定半径内
         if (player != null && entity.getEntityId() != player.getEntityId() && entity.isInRange(player, EyeConfig.distance)) {
-            // 提示实体信息同时跟踪此实体，若接下来有新的实体更靠近玩家或仍为此实体则再次更新实体
             double distance = entity.distanceTo(player);
-            if (preClosestEntity == null || distance < preClosestEntity.distanceTo(player) || entity.getEntityId() == preClosestEntity.getEntityId()) {
+            boolean updatable = updatable(distance, player, entity);
+            // 提示实体信息同时跟踪此实体，若接下来有新的实体更靠近玩家或仍为此实体则再次更新实体
+            if (updatable) {
                 preClosestEntity = entity;
                 String tip = getTip(entity.getName().getString(), getDirections(player, entity), distance);
                 
@@ -49,7 +50,9 @@ public class WorldMixin {
                     Eye.tips.put(EyeConfig.OTHER, tip);
                     updateTipTimes(EyeConfig.OTHER, now);
                 }
-            } else {
+            }
+            // 无需更新提示信息且不为超级眼时取消实体高亮
+            if (!updatable && !EyeConfig.superEye) {
                 entity.setGlowing(false);
             }
         } else {
@@ -62,6 +65,12 @@ public class WorldMixin {
                 }
             }
         }
+    }
+    
+    private boolean updatable(double distance, ClientPlayerEntity player, Entity entity) {
+        return preClosestEntity == null
+                || distance < preClosestEntity.distanceTo(player)
+                || entity.getEntityId() == preClosestEntity.getEntityId();
     }
     
     /**
