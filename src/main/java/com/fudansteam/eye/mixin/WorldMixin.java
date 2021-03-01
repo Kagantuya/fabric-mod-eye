@@ -3,43 +3,41 @@ package com.fudansteam.eye.mixin;
 import com.fudansteam.eye.Eye;
 import com.fudansteam.eye.config.EyeConfig;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.mob.AmbientEntity;
 import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.network.packet.s2c.play.EntityS2CPacket;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.function.Consumer;
+
 /**
  * @author : 箱子
  * Description : description
- * Created by 箱子 on 2021-02-26 16:41:51
+ * Created by 箱子 on 2021-03-01 11:46:58
  * Copyright 2021 HDU_IES. All rights reserved.
  */
-@Mixin(ClientPlayNetworkHandler.class)
-public class ClientPlayNetworkHandlerMixin {
+@Mixin(World.class)
+public class WorldMixin {
     
     private static Entity preClosestEntity = null;
     
-    @Inject(method = "onEntityUpdate", at = @At("RETURN"))
-    private void onEntityUpdate(EntityS2CPacket packet, CallbackInfo ci) {
-        Entity entity = packet.getEntity(Eye.world);
+    @Inject(method = "tickEntity", at = @At("RETURN"))
+    private void onTickEntity(Consumer<Entity> tickConsumer, Entity entity, CallbackInfo ci) {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         long now = Util.getMeasuringTimeMs();
-    
-        // 实体和玩家均不为空且二者距离在指定半径内
-        if (entity != null && player != null && entity.isInRange(player, EyeConfig.distance)) {
+        
+        // 玩家不为空且实体不为当前玩家，同时二者距离在指定半径内
+        if (player != null && entity.getEntityId() != player.getEntityId() && entity.isInRange(player, EyeConfig.distance)) {
             // 提示实体信息同时跟踪此实体，若接下来有新的实体更靠近玩家或仍为此实体则再次更新实体
             double distance = entity.distanceTo(player);
-            if (preClosestEntity == null
-                    || distance < preClosestEntity.distanceTo(player)
-                    || entity.getEntityId() == preClosestEntity.getEntityId()) {
+            if (preClosestEntity == null || distance < preClosestEntity.distanceTo(player) || entity.getEntityId() == preClosestEntity.getEntityId()) {
                 preClosestEntity = entity;
                 String tip = getTip(entity.getName().getString(), getDirections(player, entity), distance);
                 
@@ -51,12 +49,12 @@ public class ClientPlayNetworkHandlerMixin {
                     Eye.tips.put(EyeConfig.OTHER, tip);
                     updateTipTimes(EyeConfig.OTHER, now);
                 }
-            }
-        } else {
-            // 当前未检测到实体则判断是否可移除过期提示
-            if (entity != null) {
+            } else {
                 entity.setGlowing(false);
             }
+        } else {
+            entity.setGlowing(false);
+            // 当前未检测到实体则判断是否可移除过期提示
             for (String tipType : Eye.tipTimes.keySet()) {
                 if (now - Eye.tipTimes.get(tipType) >= EyeConfig.ALL_TIME) {
                     Eye.tips.remove(tipType);
