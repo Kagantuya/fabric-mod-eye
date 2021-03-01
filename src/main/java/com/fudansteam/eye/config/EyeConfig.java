@@ -15,5 +15,6 @@ public class EyeConfig {
     public static final float ALL_TIME = DISAPPEAR_TIME + KEEP_TIME;
     
     public static int distance = 15;
+    public static boolean superEye = false;
     
 }

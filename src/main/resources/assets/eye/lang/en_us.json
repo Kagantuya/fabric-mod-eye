@@ -1,4 +1,11 @@
 {
-  "eye.menu": "Eye Config",
-  "eye.options.distance": "Eye Distance:%s"
+  "eye.menu": "Eye…",
+  "eye.title": "Eye",
+
+  "eye.options.distance": "Eye Distance",
+  "eye.options.distance_s": "Eye Distance:%s",
+
+  "eye.options.super_eye": "Super Eye",
+  "eye.options.super_eye.open": "Super Eye:OPEN",
+  "eye.options.super_eye.off": "Super Eye:OFF"
 }
