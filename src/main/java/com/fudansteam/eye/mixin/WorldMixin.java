@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -26,26 +27,37 @@ import java.util.function.Consumer;
 @Mixin(World.class)
 public class WorldMixin {
     
-    private static Entity preClosestEntity = null;
+    private Entity preClosestEntity = null;
+    
+    /**
+     * 解决实体原有发光效果被强行抹除，只允许更新在此集合中的实体为不发光
+     */
+    private final Set<Integer> eyeGlowingEntityIdSet = new HashSet<>();
     
     @Inject(method = "tickEntity", at = @At("RETURN"))
     private void onTickEntity(Consumer<Entity> tickConsumer, Entity entity, CallbackInfo ci) {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        int entityId = entity.getEntityId();
         long now = Util.getMeasuringTimeMs();
         
         // 玩家不为空且实体不为当前玩家，同时二者距离在指定半径内
-        if (player != null && entity.getEntityId() != player.getEntityId() && entity.isInRange(player, EyeConfig.distance)) {
-            if (EyeConfig.superEye) {
+        if (player != null && entityId != player.getEntityId() && entity.isInRange(player, EyeConfig.distance)) {
+            // 校验是否发光是为了防止原有发光效果的实体刚好在此模组标记的实体集合中，造成实体原有发光效果被强行抹除
+            if (EyeConfig.superEye && !entity.isGlowing()) {
                 entity.setGlowing(true);
+                eyeGlowingEntityIdSet.add(entityId);
             }
             double distance = entity.distanceTo(player);
-            boolean updatable = updatable(distance, player, entity);
             // 提示实体信息同时跟踪此实体，若接下来有新的实体更靠近玩家或仍为此实体则再次更新实体
-            if (updatable) {
+            if (preClosestEntity == null || distance < preClosestEntity.distanceTo(player) || entityId == preClosestEntity.getEntityId()) {
                 preClosestEntity = entity;
                 String tip = getTip(entity.getName().getString(), getDirections(player, entity), distance);
                 
-                entity.setGlowing(true);
+                // 作用同上方：为了防止实体原有发光效果被意外强行抹除，同时也避免了集合重复添加已存在的实体
+                if (!entity.isGlowing()) {
+                    entity.setGlowing(true);
+                    eyeGlowingEntityIdSet.add(entityId);
+                }
                 if (entity instanceof HostileEntity || entity instanceof AmbientEntity) {
                     Eye.tips.put(EyeConfig.TERRIBLE, tip);
                     updateTipTimes(EyeConfig.TERRIBLE, now);
@@ -53,11 +65,15 @@ public class WorldMixin {
                     Eye.tips.put(EyeConfig.OTHER, tip);
                     updateTipTimes(EyeConfig.OTHER, now);
                 }
-            } else if (!EyeConfig.superEye) {
+            } else if (!EyeConfig.superEye && eyeGlowingEntityIdSet.contains(entityId)) {
                 entity.setGlowing(false);
+                eyeGlowingEntityIdSet.remove(entityId);
             }
         } else {
-            entity.setGlowing(false);
+            if (eyeGlowingEntityIdSet.contains(entityId)) {
+                entity.setGlowing(false);
+                eyeGlowingEntityIdSet.remove(entityId);
+            }
             // 当前未检测到实体则判断是否可移除过期提示
             for (String tipType : Eye.tipTimes.keySet()) {
                 if (now - Eye.tipTimes.get(tipType) >= EyeConfig.ALL_TIME) {
@@ -66,12 +82,6 @@ public class WorldMixin {
                 }
             }
         }
-    }
-    
-    private boolean updatable(double distance, ClientPlayerEntity player, Entity entity) {
-        return preClosestEntity == null
-                || distance < preClosestEntity.distanceTo(player)
-                || entity.getEntityId() == preClosestEntity.getEntityId();
     }
     
     /**
