@@ -15,7 +15,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -27,16 +28,21 @@ import java.util.function.Consumer;
 @Mixin(World.class)
 public class WorldMixin {
     
-    private Entity preClosestEntity = null;
-    
     /**
      * 解决实体原有发光效果被强行抹除，只允许更新在此集合中的实体为不发光
      */
     private final Set<Integer> eyeGlowingEntityIdSet = new HashSet<>();
     
+    @Inject(method = "close", at = @At("HEAD"))
+    private void onClose(CallbackInfo ci) {
+        // 此处需要遍历集合将所有被标记实体全部取消发光，但出于未知原因没法取消，因此会在下一次进入地图后对应实体发光效果无法消除
+        eyeGlowingEntityIdSet.clear();
+    }
+    
     @Inject(method = "tickEntity", at = @At("RETURN"))
     private void onTickEntity(Consumer<Entity> tickConsumer, Entity entity, CallbackInfo ci) {
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        MinecraftClient minecraftClient = MinecraftClient.getInstance();
+        ClientPlayerEntity player = minecraftClient.player;
         int entityId = entity.getEntityId();
         long now = Util.getMeasuringTimeMs();
         
@@ -47,11 +53,14 @@ public class WorldMixin {
                 entity.setGlowing(true);
                 eyeGlowingEntityIdSet.add(entityId);
             }
-            double distance = entity.distanceTo(player);
-            // 提示实体信息同时跟踪此实体，若接下来有新的实体更靠近玩家或仍为此实体则再次更新实体
-            if (preClosestEntity == null || distance < preClosestEntity.distanceTo(player) || entityId == preClosestEntity.getEntityId()) {
-                preClosestEntity = entity;
-                String tip = getTip(entity.getName().getString(), getDirections(player, entity), distance);
+            // 提示实体信息同时跟踪此实体，若之前未标记过实体或标记实体消失了，或接下来有新的实体更靠近玩家或仍为此实体则再次更新实体
+            Entity preEntity = null;
+            if (minecraftClient.world != null) {
+                preEntity = minecraftClient.world.getEntityById(Eye.preClosestEntityId);
+            }
+            if (Eye.preClosestEntityId == -1 || preEntity == null || entity.distanceTo(player) < preEntity.distanceTo(player) || entityId == Eye.preClosestEntityId) {
+                Eye.preClosestEntityId = entityId;
+                String tip = getTip(player, entity);
                 
                 // 作用同上方：为了防止实体原有发光效果被意外强行抹除，同时也避免了集合重复添加已存在的实体
                 if (!entity.isGlowing()) {
@@ -100,33 +109,35 @@ public class WorldMixin {
     /**
      * 获取提示
      *
-     * @param name       实体名
-     * @param directions 实体相对玩家方位
-     * @param distance   实体玩家间距离
+     * @param player 玩家
+     * @param entity 实体
      * @return 提示
      */
-    private String getTip(String name, double directions, double distance) {
-        return (directions < 0.0D ? " < " : " ") + name + " : " + String.format("%.0f", distance) + (directions > 0.0D ? " > " : " ");
+    private String getTip(ClientPlayerEntity player, Entity entity) {
+        double leftOrRight = getLeftOrRight(player, entity);
+        double upOrDown = player.getY() - entity.getY();
+        String uod = upOrDown < 0.0D ? " ↑ " : upOrDown == 0 ? " " : " ↓ ";
+        String dir = leftOrRight < 0.0D ? " <" + uod : leftOrRight == 0 ? "" : uod + "> ";
+        return (leftOrRight < 0.0D ? dir : " ") + (leftOrRight == 0 ? uod : "") +
+                entity.getName().getString() + " : " + (int) entity.distanceTo(player) +
+                (leftOrRight > 0.0D ? dir : " ") + (leftOrRight == 0 ? uod : "");
     }
     
     /**
-     * 获取实体相对玩家方位
+     * 获取实体相对玩家左右方位
      *
      * @param player 玩家
      * @param entity 实体
      * @return 方位
      */
-    private double getDirections(ClientPlayerEntity player, Entity entity) {
+    private double getLeftOrRight(ClientPlayerEntity player, Entity entity) {
         Vec3d vec3d = new Vec3d(player.getX(), player.getEyeY(), player.getZ());
         Vec3d vec3d2 = (new Vec3d(0.0D, 0.0D, -1.0D)).rotateX(-player.pitch * 0.017453292F).rotateY(-player.yaw * 0.017453292F);
         Vec3d vec3d3 = (new Vec3d(0.0D, 1.0D, 0.0D)).rotateX(-player.pitch * 0.017453292F).rotateY(-player.yaw * 0.017453292F);
         Vec3d vec3d4 = vec3d2.crossProduct(vec3d3);
         Vec3d vec3d5 = entity.getPos().subtract(vec3d).normalize();
-        double d = -vec3d4.dotProduct(vec3d5);
-        double e = -vec3d2.dotProduct(vec3d5);
-        boolean bl = e > 0.5D;
-        if (!bl) {
-            return d;
+        if (-vec3d2.dotProduct(vec3d5) <= 0.5D) {
+            return -vec3d4.dotProduct(vec3d5);
         }
         return 0;
     }

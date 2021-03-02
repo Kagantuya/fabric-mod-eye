@@ -3,9 +3,12 @@
   "eye.title": "Eye",
 
   "eye.options.distance": "Eye Distance",
-  "eye.options.distance_s": "Eye Distance:%s",
+  "eye.options.distance_s": "Eye Distance: %s",
 
   "eye.options.super_eye": "Super Eye",
-  "eye.options.super_eye.open": "Super Eye:OPEN",
-  "eye.options.super_eye.off": "Super Eye:OFF"
+  "eye.options.super_eye.open": "Super Eye: OPEN",
+  "eye.options.super_eye.off": "Super Eye: OFF",
+
+  "eye.options.tooltip.distance": "It's up to you to decide the detection distance! Unit: grid.",
+  "eye.options.tooltip.super_eye": "Highlight all entities within the detection range after opening."
 }

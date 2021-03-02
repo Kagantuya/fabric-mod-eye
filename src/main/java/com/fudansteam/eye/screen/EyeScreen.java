@@ -3,11 +3,15 @@ package com.fudansteam.eye.screen;
 import com.fudansteam.eye.options.EyeOption;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ScreenTexts;
+import net.minecraft.client.gui.screen.options.GameOptionsScreen;
 import net.minecraft.client.gui.widget.ButtonListWidget;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.options.Option;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.text.OrderedText;
 import net.minecraft.text.TranslatableText;
+
+import java.util.List;
 
 /**
  * @author : 箱子
@@ -31,6 +35,10 @@ public class EyeScreen extends Screen {
         this.list.render(matrices, mouseX, mouseY, delta);
         drawCenteredText(matrices, this.textRenderer, this.title, this.width / 2, 5, 16777215);
         super.render(matrices, mouseX, mouseY, delta);
+        List<OrderedText> list = GameOptionsScreen.getHoveredButtonTooltip(this.list, mouseX, mouseY);
+        if (list != null) {
+            this.renderOrderedTooltip(matrices, list, mouseX, mouseY);
+        }
     }
     
     @Override

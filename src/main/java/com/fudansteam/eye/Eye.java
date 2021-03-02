@@ -14,6 +14,7 @@ public class Eye implements ModInitializer {
     
     public static ConcurrentHashMap<String, String> tips = new ConcurrentHashMap<>(4);
     public static ConcurrentHashMap<String, Long> tipTimes = new ConcurrentHashMap<>(tips.size());
+    public static int preClosestEntityId = -1;
     
     @Override
     public void onInitialize() {
