@@ -4,7 +4,7 @@
   "package": "com.fudansteam.eye.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "ChatHudMixin",
+    "InGameHudMixin",
     "OptionScreenMixin",
     "ClientWorldMixin"
   ],
