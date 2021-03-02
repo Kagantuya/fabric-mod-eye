@@ -5,9 +5,8 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "ChatHudMixin",
-    "ClientPlayNetworkHandlerMixin",
     "OptionScreenMixin",
-    "WorldMixin"
+    "ClientWorldMixin"
   ],
   "client": [
   ],
