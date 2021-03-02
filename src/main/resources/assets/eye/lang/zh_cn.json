@@ -7,5 +7,8 @@
 
   "eye.options.super_eye": "超级眼",
   "eye.options.super_eye.open": "超级眼:开启",
-  "eye.options.super_eye.off": "超级眼:关闭"
+  "eye.options.super_eye.off": "超级眼:关闭",
+
+  "eye.options.tooltip.distance": "由你来决定检测的距离！单位：格。",
+  "eye.options.tooltip.super_eye": "开启后检测范围内所有实体高亮。"
 }
