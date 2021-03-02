@@ -4,7 +4,7 @@ import com.fudansteam.eye.Eye;
 import com.fudansteam.eye.config.EyeConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.hud.ChatHud;
+import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Util;
@@ -20,18 +20,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Created by 箱子 on 2021-02-27 00:00:26
  * Copyright 2021 HDU_IES. All rights reserved.
  */
-@Mixin(ChatHud.class)
-public class ChatHudMixin {
+@Mixin(InGameHud.class)
+public class InGameHudMixin {
     
-    private static final float TOP = -20.0F;
-    private static final float PADDING = 2.0F;
+    private static final int PADDING = 14;
     
-    @Inject(method = "render", at = @At("RETURN"))
-    private void render(MatrixStack matrices, int tickDelta, CallbackInfo ci) {
+    @Inject(method = "renderHeldItemTooltip", at = @At("RETURN"))
+    private void render(MatrixStack matrices, CallbackInfo ci) {
         if (Eye.tips != null) {
             MinecraftClient client = MinecraftClient.getInstance();
             TextRenderer textRenderer = client.textRenderer;
             long now = Util.getMeasuringTimeMs();
+            int y = client.getWindow().getScaledHeight() - 59;
+            if (client.interactionManager != null && !client.interactionManager.hasStatusBars()) {
+                y += PADDING;
+            }
             
             if (canRender(EyeConfig.TERRIBLE, now)) {
                 TranslatableText text = new TranslatableText(Eye.tips.get(EyeConfig.TERRIBLE));
@@ -39,7 +42,7 @@ public class ChatHudMixin {
                         matrices,
                         text,
                         (float) ((client.getWindow().getScaledWidth() - textRenderer.getWidth(text)) / 2),
-                        TOP,
+                        y - (textRenderer.fontHeight + PADDING) * 2,
                         getColor(EyeConfig.TERRIBLE, now));
             }
             if (canRender(EyeConfig.OTHER, now)) {
@@ -48,7 +51,7 @@ public class ChatHudMixin {
                         matrices,
                         text,
                         (float) ((client.getWindow().getScaledWidth() - textRenderer.getWidth(text)) / 2),
-                        TOP + textRenderer.fontHeight + PADDING,
+                        y - (textRenderer.fontHeight + PADDING),
                         getColor(EyeConfig.OTHER, now));
             }
         }
