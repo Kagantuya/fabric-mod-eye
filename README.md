@@ -15,7 +15,7 @@
 2. 在指定半径内实时在屏幕中下方hud显示检测到的最近实体信息与方位。
 3. 实体高亮辅助玩家快速定位。
 
-预览截图：
+预览截图（较老版本，目前有些许改动）：
 ![Alt text](https://gitee.com/a_box/other/raw/master/screenshot.png "预览截图")
 
-[演示视频](https://www.bilibili.com/video/BV1Wf4y167yS/)
+[演示视频（较老版本，目前有些许改动）](https://www.bilibili.com/video/BV1Wf4y167yS/)
