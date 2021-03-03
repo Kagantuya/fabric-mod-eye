@@ -75,7 +75,7 @@ public class ClientWorldMixin {
         }
         // 当前未检测到实体则判断是否可移除过期提示
         for (String tipType : Eye.tipTimes.keySet()) {
-            if (Util.getMeasuringTimeMs() - Eye.tipTimes.get(tipType) >= EyeConfig.ALL_TIME) {
+            if (Util.getMeasuringTimeMs() - Eye.tipTimes.get(tipType) >= EyeConfig.DISAPPEAR_TIME) {
                 Eye.tips.remove(tipType);
                 Eye.tipTimes.remove(tipType);
             }
@@ -131,7 +131,7 @@ public class ClientWorldMixin {
      */
     private void updateTipTimes(String tipType, long now) {
         Long preTime = Eye.tipTimes.get(tipType);
-        if (preTime == null || now - preTime < EyeConfig.ALL_TIME) {
+        if (preTime == null || now - preTime < EyeConfig.DISAPPEAR_TIME) {
             Eye.tipTimes.put(tipType, now);
         }
     }
@@ -148,7 +148,7 @@ public class ClientWorldMixin {
         double upOrDown = player.getY() - entity.getY();
         String uod = upOrDown < 0.0D ? " ↑ " : upOrDown == 0 ? " " : " ↓ ";
         String dir = leftOrRight < 0.0D ? " <" + uod : leftOrRight == 0 ? "" : uod + "> ";
-        return (leftOrRight < 0.0D ? dir : " ") + (leftOrRight == 0 ? uod : "") +
+        return (leftOrRight < 0.0D ? dir : " ") +
                 entity.getName().getString() + " : " + (int) entity.distanceTo(player) +
                 (leftOrRight > 0.0D ? dir : " ") + (leftOrRight == 0 ? uod : "");
     }
