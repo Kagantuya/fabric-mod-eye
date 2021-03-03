@@ -67,7 +67,7 @@ public class InGameHudMixin {
     private boolean canRender(String tipType, long now) {
         String tip = Eye.tips.get(tipType);
         Long tipTime = Eye.tipTimes.get(tipType);
-        return tip != null && tipTime != null && now - tipTime < EyeConfig.ALL_TIME;
+        return tip != null && tipTime != null && now - tipTime < EyeConfig.DISAPPEAR_TIME;
     }
     
     /**
@@ -79,15 +79,10 @@ public class InGameHudMixin {
      */
     private int getColor(String tipType, long now) {
         float delta = now - Eye.tipTimes.get(tipType);
-        // 仍在有效持续时间之内则显示白色
-        if (delta < EyeConfig.KEEP_TIME) {
-            return -1;
-        } else {
-            // 渐变淡出
-            int p = MathHelper.floor(MathHelper.clampedLerp(75.0D, 255.0D, (EyeConfig.ALL_TIME - delta) / EyeConfig.DISAPPEAR_TIME));
-            int q = p << 16 | p << 8 | p;
-            return q + -16777216;
-        }
+        // 渐变淡出
+        int p = MathHelper.floor(MathHelper.clampedLerp(75.0D, 255.0D, (EyeConfig.DISAPPEAR_TIME - delta) / EyeConfig.DISAPPEAR_TIME));
+        int q = p << 16 | p << 8 | p;
+        return q + -16777216;
     }
     
 }

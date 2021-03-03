@@ -1,5 +1,6 @@
 package com.fudansteam.eye.client;
 
+import com.fudansteam.eye.config.EyeDistributor;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -15,6 +16,7 @@ public class EyeClient implements ClientModInitializer {
     
     @Override
     public void onInitializeClient() {
+        EyeDistributor.load();
     }
     
 }
