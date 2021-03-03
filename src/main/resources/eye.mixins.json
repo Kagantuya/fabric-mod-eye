@@ -4,11 +4,11 @@
   "package": "com.fudansteam.eye.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+  ],
+  "client": [
     "InGameHudMixin",
     "OptionScreenMixin",
     "ClientWorldMixin"
-  ],
-  "client": [
   ],
   "injectors": {
     "defaultRequire": 1
