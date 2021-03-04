@@ -1,5 +1,7 @@
 package com.fudansteam.eye.config;
 
+import com.fudansteam.eye.Eye;
+
 import java.io.*;
 
 /**
@@ -59,14 +61,16 @@ public class EyeDistributor {
     private static void setConfig(String config) {
         String[] splits = config.split("\n");
         EyeConfig.distance = Integer.parseInt(splits[0].split("=")[1]);
-        EyeConfig.superEye = Boolean.parseBoolean(splits[1].split("=")[1]);
+        EyeConfig.warnDistance = Integer.parseInt(splits[1].split("=")[1]);
+        EyeConfig.superEye = Boolean.parseBoolean(splits[2].split("=")[1]);
+        Eye.originGamma = Double.parseDouble(splits[3].split("=")[1]);
     }
     
     private static String getConfig() {
-        String config = "";
-        config += "distance=" + EyeConfig.distance + "\n";
-        config += "superEye=" + EyeConfig.superEye + "\n";
-        return config;
+        return "distance=" + EyeConfig.distance + "\n" +
+                "warnDistance=" + EyeConfig.warnDistance + "\n" +
+                "superEye=" + EyeConfig.superEye + "\n" +
+                "originGamma=" + Eye.originGamma + "\n";
     }
     
 }

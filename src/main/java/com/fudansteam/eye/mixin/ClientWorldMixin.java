@@ -6,8 +6,10 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.AmbientEntity;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.mob.SlimeEntity;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,7 +17,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -31,13 +35,14 @@ public class ClientWorldMixin {
      * 解决实体原有发光效果被强行抹除，只允许更新在此集合中的实体为不发光；同时保存被标记的实体，在退出世界时取消发光效果
      */
     private final Set<Integer> eyeGlowingEntityIdSet = new HashSet<>();
-    private static int preClosestEntityId = -1;
+    private final Map<String, Integer> preClosestEntityIdMap = new HashMap<>();
     
     @Inject(method = "disconnect", at = @At("HEAD"))
     private void onDisconnect(CallbackInfo ci) {
         Eye.tips.clear();
         Eye.tipTimes.clear();
-        preClosestEntityId = -1;
+        preClosestEntityIdMap.clear();
+        Eye.shouldWarn = false;
         ClientWorld world = MinecraftClient.getInstance().world;
         if (world != null) {
             for (int entityId : eyeGlowingEntityIdSet) {
@@ -52,11 +57,20 @@ public class ClientWorldMixin {
     
     @Inject(method = "tickEntity", at = @At("RETURN"))
     private void onTickEntity(Entity entity, CallbackInfo ci) {
-        MinecraftClient minecraftClient = MinecraftClient.getInstance();
-        ClientPlayerEntity player = minecraftClient.player;
+        //不是超级眼则不检测非生物，同时取消超级眼中被标记的非生物实体发光
+        if (!EyeConfig.superEye && !(entity instanceof LivingEntity)) {
+            if (eyeGlowingEntityIdSet.contains(entity.getEntityId())) {
+                entity.setGlowing(false);
+            }
+            return;
+        }
+        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        if (((int) entity.distanceTo(player)) == 0) {
+            return;
+        }
         // 玩家不为空且实体不为当前玩家，同时二者距离在指定半径内
         if (player != null && entity.getEntityId() != player.getEntityId() && entity.isInRange(player, EyeConfig.distance)) {
-            insideEye(entity, player, minecraftClient);
+            insideEye(entity, player);
         } else {
             outsideEye(entity);
         }
@@ -85,37 +99,50 @@ public class ClientWorldMixin {
     /**
      * 在检测距离之内
      *
-     * @param entity          实体
-     * @param player          玩家
-     * @param minecraftClient minecraftClient
+     * @param entity 实体
+     * @param player 玩家
      */
-    private void insideEye(Entity entity, ClientPlayerEntity player, MinecraftClient minecraftClient) {
+    private void insideEye(Entity entity, ClientPlayerEntity player) {
         int entityId = entity.getEntityId();
         // 校验是否发光是为了防止原有发光效果的实体刚好在此模组标记的实体集合中，造成实体原有发光效果被强行抹除
         if (EyeConfig.superEye && !entity.isGlowing()) {
             entity.setGlowing(true);
             eyeGlowingEntityIdSet.add(entityId);
         }
-        // 提示实体信息同时跟踪此实体，若之前未标记过实体或标记实体消失了，或接下来有新的实体更靠近玩家或仍为此实体则再次更新实体
-        Entity preEntity = null;
-        if (minecraftClient.world != null) {
-            preEntity = minecraftClient.world.getEntityById(preClosestEntityId);
+        if (entity instanceof HostileEntity || entity instanceof AmbientEntity || entity instanceof SlimeEntity) {
+            shouldUpdate(EyeConfig.TERRIBLE, entity, player);
+        } else {
+            shouldUpdate(EyeConfig.OTHER, entity, player);
         }
-        if (preClosestEntityId == -1 || preEntity == null || entity.distanceTo(player) < preEntity.distanceTo(player) || entityId == preClosestEntityId) {
-            preClosestEntityId = entityId;
-            String tip = getTip(player, entity);
-            
+    }
+    
+    /**
+     * 是否应该更新
+     *
+     * @param tipType 提示种类
+     * @param entity  实体
+     * @param player  玩家
+     */
+    private void shouldUpdate(String tipType, Entity entity, ClientPlayerEntity player) {
+        int entityId = entity.getEntityId();
+        // 提示实体信息同时跟踪此实体，若之前未标记过实体或标记实体消失了，或接下来有新的实体更靠近玩家或仍为此实体则再次更新实体
+        Integer preTerribleEntityId = preClosestEntityIdMap.get(tipType);
+        Entity preTerribleEntity = null;
+        if (MinecraftClient.getInstance().world != null && preTerribleEntityId != null) {
+            preTerribleEntity = MinecraftClient.getInstance().world.getEntityById(preTerribleEntityId);
+        }
+        if (preTerribleEntityId == null || preTerribleEntity == null ||
+                entity.distanceTo(player) < preTerribleEntity.distanceTo(player) || entityId == preTerribleEntityId) {
             // 为了防止实体原有发光效果被意外强行抹除，同时也避免了集合重复添加已存在的实体
             if (!entity.isGlowing()) {
                 entity.setGlowing(true);
                 eyeGlowingEntityIdSet.add(entityId);
             }
-            if (entity instanceof HostileEntity || entity instanceof AmbientEntity) {
-                Eye.tips.put(EyeConfig.TERRIBLE, tip);
-                updateTipTimes(EyeConfig.TERRIBLE, Util.getMeasuringTimeMs());
-            } else {
-                Eye.tips.put(EyeConfig.OTHER, tip);
-                updateTipTimes(EyeConfig.OTHER, Util.getMeasuringTimeMs());
+            Eye.tips.put(tipType, getTip(player, entity));
+            preClosestEntityIdMap.put(tipType, entityId);
+            updateTipTimes(tipType);
+            if (tipType.equals(EyeConfig.TERRIBLE)) {
+                Eye.shouldWarn = entity.distanceTo(player) <= EyeConfig.warnDistance;
             }
         } else if (!EyeConfig.superEye && eyeGlowingEntityIdSet.contains(entityId)) {
             entity.setGlowing(false);
@@ -127,12 +154,11 @@ public class ClientWorldMixin {
      * 更新提示触发时间
      *
      * @param tipType 提示种类
-     * @param now     当前时间
      */
-    private void updateTipTimes(String tipType, long now) {
+    private void updateTipTimes(String tipType) {
         Long preTime = Eye.tipTimes.get(tipType);
-        if (preTime == null || now - preTime < EyeConfig.DISAPPEAR_TIME) {
-            Eye.tipTimes.put(tipType, now);
+        if (preTime == null || Util.getMeasuringTimeMs() - preTime < EyeConfig.DISAPPEAR_TIME) {
+            Eye.tipTimes.put(tipType, Util.getMeasuringTimeMs());
         }
     }
     
@@ -170,10 +196,7 @@ public class ClientWorldMixin {
                 .rotateY(-player.yaw * 0.017453292F);
         Vec3d vec3d4 = vec3d2.crossProduct(vec3d3);
         Vec3d vec3d5 = entity.getPos().subtract(vec3d).normalize();
-        if (-vec3d2.dotProduct(vec3d5) <= 0.5D) {
-            return -vec3d4.dotProduct(vec3d5);
-        }
-        return 0;
+        return -vec3d2.dotProduct(vec3d5) <= 0.5D ? -vec3d4.dotProduct(vec3d5) : 0;
     }
     
 }

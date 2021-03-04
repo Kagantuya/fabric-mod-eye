@@ -6,10 +6,12 @@
 
   "eye.options.distance": "Eye Distance",
   "eye.options.distance_s": "Eye Distance: %s",
+  "eye.options.warn_distance": "Warn Distance: %s",
+  "eye.options.warn_distance_s": "Warn Distance: %s",
 
   "eye.options.super_eye": "Super Eye",
   "eye.options.super_eye.open": "Super Eye: OPEN",
   "eye.options.super_eye.off": "Super Eye: OFF",
 
-  "eye.options.tooltip.super_eye": "Highlight all entities within the detection range after opening."
+  "eye.options.tooltip.super_eye": "After turning on, all entities in the detection range are highlighted and night vision is turned on."
 }

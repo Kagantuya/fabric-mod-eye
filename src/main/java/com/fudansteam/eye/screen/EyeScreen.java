@@ -44,7 +44,7 @@ public class EyeScreen extends Screen {
     @Override
     protected void init() {
         this.list = new ButtonListWidget(this.client, this.width, this.height, 32, this.height - 32, 25);
-        this.list.addAll(new Option[]{EyeOption.EYE_DISTANCE, EyeOption.SUPER_EYE});
+        this.list.addAll(new Option[]{EyeOption.EYE_DISTANCE, EyeOption.WARN_DISTANCE, EyeOption.SUPER_EYE});
         this.children.add(this.list);
         this.addButton(new ButtonWidget(this.width / 2 - 100, this.height - 27, 200, 20, ScreenTexts.DONE, (button) -> {
             if (this.client != null) {

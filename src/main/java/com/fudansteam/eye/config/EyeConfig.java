@@ -14,5 +14,6 @@ public class EyeConfig {
     
     public static int distance = 15;
     public static boolean superEye = false;
+    public static int warnDistance = 5;
     
 }
