@@ -1,5 +1,6 @@
 package com.fudansteam.eye.options;
 
+import com.fudansteam.eye.Eye;
 import com.fudansteam.eye.config.EyeConfig;
 import com.fudansteam.eye.config.EyeDistributor;
 import net.minecraft.client.MinecraftClient;
@@ -30,9 +31,24 @@ public class EyeOption {
             },
             (gameOptions, option) -> new TranslatableText("eye.options.distance_s", EyeConfig.distance));
     
+    public static final DoubleOption WARN_DISTANCE = new DoubleOption("eye.options.warn_distance",
+            1.0D, 50.0D, 1.0F,
+            gameOptions -> (double) EyeConfig.warnDistance,
+            (gameOptions, warnDistance) -> {
+                EyeConfig.warnDistance = warnDistance.intValue();
+                EyeDistributor.save();
+            },
+            (gameOptions, option) -> new TranslatableText("eye.options.warn_distance_s", EyeConfig.warnDistance));
+    
     public static final CyclingOption SUPER_EYE = new CyclingOption("eye.options.super_eye",
             (gameOptions, integer) -> {
                 EyeConfig.superEye = !EyeConfig.superEye;
+                if (EyeConfig.superEye) {
+                    Eye.originGamma = gameOptions.gamma;
+                    gameOptions.gamma = 1;
+                } else if (Eye.originGamma != -1) {
+                    gameOptions.gamma = Eye.originGamma;
+                }
                 EyeDistributor.save();
             },
             (gameOptions, cyclingOption) -> {

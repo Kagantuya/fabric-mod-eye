@@ -14,6 +14,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.awt.*;
+
 /**
  * @author : 箱子
  * Description : description
@@ -52,9 +54,7 @@ public class InGameHudMixin extends DrawableHelper {
      * @return 是否可渲染
      */
     private boolean canRender(String tipType) {
-        String tip = Eye.tips.get(tipType);
-        Long tipTime = Eye.tipTimes.get(tipType);
-        return tip != null && tipTime != null && Util.getMeasuringTimeMs() - tipTime < EyeConfig.DISAPPEAR_TIME;
+        return Eye.tips.get(tipType) != null && Eye.tipTimes.get(tipType) != null;
     }
     
     /**
@@ -66,9 +66,8 @@ public class InGameHudMixin extends DrawableHelper {
     private int getColor(String tipType) {
         float delta = Util.getMeasuringTimeMs() - Eye.tipTimes.get(tipType);
         // 渐变淡出
-        int p = MathHelper.floor(MathHelper.clampedLerp(75.0D, 255.0D, (EyeConfig.DISAPPEAR_TIME - delta) / EyeConfig.DISAPPEAR_TIME));
-        int q = p << 16 | p << 8 | p;
-        return q + -16777216;
+        int p = MathHelper.floor(MathHelper.clampedLerp(25.0D, 255.0D, (EyeConfig.DISAPPEAR_TIME - delta) / EyeConfig.DISAPPEAR_TIME));
+        return Eye.shouldWarn && tipType.equals(EyeConfig.TERRIBLE) ? new Color(255, 0, 0, p).getRGB() : new Color(255, 255, 255, p).getRGB();
     }
     
 }

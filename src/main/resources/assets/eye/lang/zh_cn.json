@@ -6,10 +6,12 @@
 
   "eye.options.distance": "检测距离",
   "eye.options.distance_s": "检测距离:%s",
+  "eye.options.warn_distance": "警报距离",
+  "eye.options.warn_distance_s": "警报距离:%s",
 
   "eye.options.super_eye": "超级眼",
   "eye.options.super_eye.open": "超级眼:开启",
   "eye.options.super_eye.off": "超级眼:关闭",
 
-  "eye.options.tooltip.super_eye": "开启后检测范围内所有实体高亮。"
+  "eye.options.tooltip.super_eye": "开启后检测范围内所有实体高亮并开启夜视。"
 }

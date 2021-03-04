@@ -12,8 +12,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Eye implements ModInitializer {
     
-    public static ConcurrentHashMap<String, String> tips = new ConcurrentHashMap<>(4);
-    public static ConcurrentHashMap<String, Long> tipTimes = new ConcurrentHashMap<>(tips.size());
+    public static ConcurrentHashMap<String, String> tips = new ConcurrentHashMap<>();
+    public static ConcurrentHashMap<String, Long> tipTimes = new ConcurrentHashMap<>();
+    public static boolean shouldWarn = false;
+    public static double originGamma = -1;
     
     @Override
     public void onInitialize() {
